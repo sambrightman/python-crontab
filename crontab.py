@@ -353,15 +353,15 @@ class CronTab(object):
     def run_scheduler(self, timeout=-1, **kwargs):
         """Run the CronTab as an internal scheduler (generator)"""
         count = 0
-        self.run_pending()
         while count != timeout:
-            count += 1
-            sleep(kwargs.get('cadence', 60))
             now = datetime.now()
             if 'warp' in kwargs:
                 now += timedelta(seconds=count * 60)
             for value in self.run_pending(now=now):
                 yield value
+
+            sleep(kwargs.get('cadence', 60))
+            count += 1
 
     def render(self):
         """Render this crontab as it would be in the crontab."""
@@ -651,13 +651,13 @@ class CronItem(object):
         """Runs the command if scheduled"""
         now = now or datetime.now()
         if self.is_enabled():
-            if self.last_run is not None:
-                next_time = self.schedule(self.last_run).get_next()
-                if next_time < now:
-                    self.last_run = now
-                    return self.run()
-            else:
+            if self.last_run is None:
                 self.last_run = now
+
+            next_time = self.schedule(self.last_run).get_next()
+            if next_time < now:
+                self.last_run = now
+                return self.run()
 
     def run(self):
         """Runs the given command as a pipe"""
