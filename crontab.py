@@ -167,6 +167,7 @@ def open_pipe(cmd, *args, **flags):
     a. keyword args are flags and always appear /before/ arguments for bsd
     """
     cmd_args = tuple(shlex.split(cmd))
+    env = flags.pop('env', None)
     for (key, value) in flags.items():
         if len(key) == 1:
             cmd_args += ("-%s" % key),
@@ -175,7 +176,7 @@ def open_pipe(cmd, *args, **flags):
         else:
             cmd_args += ("--%s=%s" % (key, value)),
     args = tuple(arg for arg in (cmd_args + tuple(args)) if arg)
-    return sp.Popen(args, stdout=sp.PIPE, stderr=sp.PIPE)
+    return sp.Popen(args, stdout=sp.PIPE, stderr=sp.PIPE, env=env)
 
 def _unicode(text):
     """Convert to the best string format for this python version"""
@@ -661,8 +662,10 @@ class CronItem(object):
 
     def run(self):
         """Runs the given command as a pipe"""
+        env = os.environ.copy()
+        env.update(self.env.all())
         shell = self.env.get('SHELL', SHELL)
-        (out, err) = open_pipe(shell, '-c', self.command).communicate()
+        (out, err) = open_pipe(shell, '-c', self.command, env=env).communicate()
         if err:
             LOG.error(err.decode("utf-8"))
         return out.decode("utf-8").strip()
