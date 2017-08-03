@@ -14,6 +14,9 @@ def main():
     elif '-e' in args:
         sys.stderr.write('|'.join(sorted(args)) + "\n")
         return
+    elif '-ev' in args:
+        print(os.environ.get('CR_VAR', 'FAILED') + '\n')
+        return
 
     user = 'user'
     if '-u' in args:
