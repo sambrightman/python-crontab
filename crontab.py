@@ -104,7 +104,7 @@ except ImportError:
                 " install ordereddict 1.1 from pypi for python2.6")
 
 __pkgname__ = 'python-crontab'
-__version__ = '2.2.4'
+__version__ = '2.2.5'
 
 ITEMREX = re.compile(r'^\s*([^@#\s]+)\s+([^@#\s]+)\s+([^@#\s]+)\s+([^@#\s]+)'
                      r'\s+([^@#\s]+)\s+([^#\n]*)(\s+#\s*([^\n]*)|$)')
@@ -1293,7 +1293,7 @@ class OrderedVariableList(OrderedDict):
             if self.previous:
                 if self.previous.all().get(key, None) == value:
                     continue
-            if ' ' in unicode(value):
+            if ' ' in unicode(value) or value == '':
                 value = '"%s"' % value
             ret.append("%s=%s" % (key, unicode(value)))
         ret.append('')

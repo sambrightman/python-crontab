@@ -172,5 +172,10 @@ SECONDARY=fork
 38 12 * * * eat_steak
 """)
 
+    def test_10_empty_env(self):
+        """Test when an env is an empty string it should have quotes"""
+        tab='MAILTO=""\n'
+        self.assertEqual(str(CronTab(tab=tab)), tab)
+
 if __name__ == '__main__':
     test_support.run_unittest(EnvTestCase)
