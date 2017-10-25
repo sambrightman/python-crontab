@@ -21,11 +21,13 @@ Test the creation, reading and writing on environment variables.
 
 import os
 import sys
-
 sys.path.insert(0, '../')
+
+from .test_usage import TEST_DIR
 
 import unittest
 from collections import OrderedDict
+
 from crontab import CronTab
 try:
     from test import test_support
@@ -176,6 +178,43 @@ SECONDARY=fork
         """Test when an env is an empty string it should have quotes"""
         tab='MAILTO=""\n'
         self.assertEqual(str(CronTab(tab=tab)), tab)
+
+    def test_11_empty_flow(self):
+        """Test what happends when an env is involved in flow"""
+        tab = """
+# 
+# 
+MAILTO=""
+#  
+/10 * * * * /home/pi/job.py # any job
+"""
+        cron = CronTab(tab=tab)
+        job = cron.new('update.py', 'update')
+        job.setall('1 12 * * 3')
+        self.assertTrue(job.is_valid())
+        self.assertEqual(str(cron), """MAILTO=""
+
+# 
+# 
+#  
+/10 * * * * /home/pi/job.py # any job
+
+1 12 * * 3 update.py # update
+""")
+
+        cron.remove_all(comment='update')
+
+        cron.write_to_user("bob")
+        filename = os.path.join(TEST_DIR, 'data', 'spool', 'bob')
+        with open(filename, 'r') as fhl:
+            self.assertEqual(fhl.read(), """MAILTO=""
+
+# 
+# 
+#  
+/10 * * * * /home/pi/job.py # any job
+""")
+        os.path.unlink(filename)
 
 if __name__ == '__main__':
     test_support.run_unittest(EnvTestCase)
