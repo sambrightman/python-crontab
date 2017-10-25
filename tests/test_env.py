@@ -214,7 +214,7 @@ MAILTO=""
 #  
 /10 * * * * /home/pi/job.py # any job
 """)
-        os.path.unlink(filename)
+        os.unlink(filename)
 
 if __name__ == '__main__':
     test_support.run_unittest(EnvTestCase)
