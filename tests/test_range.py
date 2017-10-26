@@ -81,6 +81,14 @@ class RangeTestCase(unittest.TestCase):
         """)
         self.assertEqual(len(tab), 0)
 
+    def test_14_invalid_range(self):
+        """No numerator in range"""
+        tab = CronTab(tab="/10 * * * * command")
+        self.assertEqual(len(tab), 0)
+        with self.assertRaises(ValueError):
+            tab.render(errors=True)
+        self.assertEqual(unicode(tab), "# DISABLED LINE\n# /10 * * * * command\n")
+
     def test_05_sunday(self):
         """Test all possible day of week combinations"""
         for (a, b) in (

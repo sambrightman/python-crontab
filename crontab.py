@@ -104,7 +104,7 @@ except ImportError:
                 " install ordereddict 1.1 from pypi for python2.6")
 
 __pkgname__ = 'python-crontab'
-__version__ = '2.2.5'
+__version__ = '2.2.6'
 
 ITEMREX = re.compile(r'^\s*([^@#\s]+)\s+([^@#\s]+)\s+([^@#\s]+)\s+([^@#\s]+)'
                      r'\s+([^@#\s]+)\s+([^#\n]*)(\s+#\s*([^\n]*)|$)')
@@ -302,7 +302,7 @@ class CronTab(object):
 
         self.lines.append(line.replace('\n', ''))
 
-    def write(self, filename=None, user=None):
+    def write(self, filename=None, user=None, errors=False):
         """Write the crontab to it's source or a given filename."""
         if filename:
             self.filen = filename
@@ -324,7 +324,7 @@ class CronTab(object):
             filed, path = tempfile.mkstemp()
             fileh = os.fdopen(filed, 'wb')
 
-        fileh.write(self.render().encode('utf-8'))
+        fileh.write(self.render(errors=errors).encode('utf-8'))
         fileh.close()
 
         if not self.filen:
@@ -364,9 +364,25 @@ class CronTab(object):
             sleep(kwargs.get('cadence', 60))
             count += 1
 
-    def render(self):
-        """Render this crontab as it would be in the crontab."""
-        crons = [unicode(cron) for cron in self.lines]
+    def render(self, errors=False):
+        """Render this crontab as it would be in the crontab.
+        
+        errors - Should we not comment out invalid entries and cause errors?
+        """
+        crons = []
+        for line in self.lines:
+            if isinstance(line, (unicode, str)):
+                if line.strip().startswith('#') or not line.strip():
+                    crons.append(line)
+                elif not errors:
+                    crons.append('# DISABLED LINE\n# ' + line)
+                else:
+                    raise ValueError("Invalid line: %s" % line)
+            elif isinstance(line, CronItem):
+                if not line.is_valid() and not errors:
+                    line.enabled = False
+                crons.append(unicode(line))
+
         result = unicode(self.env) + u'\n'.join(crons)
         if result and result[-1] not in (u'\n', u'\r'):
             result += u'\n'
@@ -780,7 +796,7 @@ class CronItem(object):
         return self.__unicode__()
 
     def __unicode__(self):
-        if not self.is_valid():
+        if not self.is_valid() and self.enabled:
             raise ValueError('Refusing to render invalid crontab.'
                              ' Disable to continue.')
         return self.render()

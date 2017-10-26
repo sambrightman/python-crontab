@@ -193,6 +193,15 @@ class InteractionTestCase(unittest.TestCase):
         job.valid = False
         with self.assertRaises(ValueError):
             unicode(job)
+        # Disabled jobs still work
+        job.enabled = False
+        unicode(job)
+
+        job.enabled = True
+        with self.assertRaises(ValueError):
+            self.crontab.render(errors=True)
+        self.crontab.render(errors=False)
+        self.assertFalse(job.enabled)
 
     def test_15_slices(self):
         """Invalid Slices"""

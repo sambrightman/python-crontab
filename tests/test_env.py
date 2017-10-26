@@ -186,7 +186,7 @@ SECONDARY=fork
 # 
 MAILTO=""
 #  
-/10 * * * * /home/pi/job.py # any job
+*/10 * * * * /home/pi/job.py # any job
 """
         cron = CronTab(tab=tab)
         job = cron.new('update.py', 'update')
@@ -197,7 +197,7 @@ MAILTO=""
 # 
 # 
 #  
-/10 * * * * /home/pi/job.py # any job
+*/10 * * * * /home/pi/job.py # any job
 
 1 12 * * 3 update.py # update
 """)
@@ -212,7 +212,7 @@ MAILTO=""
 # 
 # 
 #  
-/10 * * * * /home/pi/job.py # any job
+*/10 * * * * /home/pi/job.py # any job
 """)
         os.unlink(filename)
 
