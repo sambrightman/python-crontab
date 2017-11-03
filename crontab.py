@@ -269,7 +269,7 @@ class CronTab(object):
             lines = out.decode('utf-8').split("\n")
 
         for line in lines:
-            self.append(CronItem(line, cron=self), line, read=True)
+            self.append(CronItem(line, cron=self), line)
 
     def append(self, item, line='', read=False):
         """Append a CronItem object to this CronTab"""
