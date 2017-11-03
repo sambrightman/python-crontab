@@ -910,7 +910,7 @@ class CronSlices(list):
 
     def clean_render(self):
         """Return just numbered parts of this crontab"""
-        return ' '.join([unicode(s) for s in self])
+        return ' '.join([unicode(s.render(False, i < 4)) for i, s in enumerate(self)])
 
     def render(self):
         "Return just the first part of a cron job (the numbers or special)"
@@ -1015,7 +1015,7 @@ class CronSlice(object):
             except ValueError as err:
                 raise ValueError('%s:%s/%s' % (unicode(err), self.name, part))
 
-    def render(self, resolve=False):
+    def render(self, resolve=False, zero_pad=True):
         """Return the slice rendered as a crontab.
 
         resolve - return integer values instead of enums (default False)
@@ -1023,7 +1023,7 @@ class CronSlice(object):
         """
         if len(self.parts) == 0:
             return '*'
-        return _render_values(self.parts, ',', resolve)
+        return _render_values(self.parts, ',', resolve, zero_pad)
 
     def __repr__(self):
         return "<CronSlice '%s'>" % unicode(self)
@@ -1148,20 +1148,20 @@ class CronValue(object):
         return self.value
 
 
-def _render_values(values, sep=',', resolve=False):
+def _render_values(values, sep=',', resolve=False, zero_pad=True):
     """Returns a rendered list, sorted and optionally resolved"""
     if len(values) > 1:
         values.sort()
-    return sep.join([_render(val, resolve) for val in values])
+    return sep.join([_render(val, resolve, zero_pad) for val in values])
 
 
-def _render(value, resolve=False):
+def _render(value, resolve=False, zero_pad=True):
     """Return a single value rendered"""
     if isinstance(value, CronRange):
-        return value.render(resolve)
+        return value.render(resolve, zero_pad)
     if resolve:
         return str(int(value))
-    return unicode(value)
+    return unicode(u'{:02d}'.format(value) if zero_pad else value)
 
 
 class CronRange(object):
@@ -1219,14 +1219,14 @@ class CronRange(object):
         self.vfrom = self.slice.min
         self.vto = self.slice.max
 
-    def render(self, resolve=False):
+    def render(self, resolve=False, zero_pad=True):
         """Render the ranged value for a cronjob"""
         value = '*'
         if int(self.vfrom) > self.slice.min or int(self.vto) < self.slice.max:
             if self.vfrom == self.vto:
                 value = unicode(self.vfrom)
             else:
-                value = _render_values([self.vfrom, self.vto], '-', resolve)
+                value = _render_values([self.vfrom, self.vto], '-', resolve, zero_pad)
         if self.seq != 1:
             value += "/%d" % self.seq
         if value != '*' and SYSTEMV:
