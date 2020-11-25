@@ -404,7 +404,7 @@ class CronTab(object):
     def find_command(self, command):
         """Return an iter of jobs matching any part of the command."""
         for job in list(self.crons):
-            if isinstance(command, re._pattern_type):
+            if isinstance(command, type(ITEMREX)):
                 if command.findall(job.command):
                     yield job
             elif command in job.command:
@@ -413,7 +413,7 @@ class CronTab(object):
     def find_comment(self, comment):
         """Return an iter of jobs that match the comment field exactly."""
         for job in list(self.crons):
-            if isinstance(comment, re._pattern_type):
+            if isinstance(comment, type(ITEMREX)):
                 if comment.findall(job.comment):
                     yield job
             elif comment == job.comment:
